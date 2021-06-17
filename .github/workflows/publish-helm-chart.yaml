@@ -7,8 +7,7 @@ on:
       - 'Chart.yaml'
 
 env:
-  S3_PLUGIN_VERSION: "v0.10.0"
-  S3_BUCKET_PUBLIC_URL: "https://svmt-helm-repo-s3.s3.eu-central-1.amazonaws.com"
+  HELM_S3_PLUGIN_VERSION: "v0.10.0"
   S3_BUCKET_CHARTS_DIR: charts
   S3_BUCKET_NAME: svmt-helm-repo-s3
 
@@ -27,12 +26,7 @@ jobs:
           # Get chart version for Chart.yaml
           CHART_VERSION=$(grep -E '^version:' Chart.yaml | awk '{print $2}')
           # Install helm S3 plugin
-          helm plugin install https://github.com/hypnoglow/helm-s3.git --version ${{ env.S3_PLUGIN_VERSION }}
-          # Check if repo has been initialized. index.yaml is accessesible then
-          if ! curl -Is "${{ env.S3_BUCKET_PUBLIC_URL }}/${{ env.S3_BUCKET_CHARTS_DIR }}/index.yaml" | head -n1 | grep 200 &>/dev/null; then
-            # Initalize empty repository
-            helm s3 init "s3://${{ env.S3_BUCKET_NAME }}/${{ env.S3_BUCKET_CHARTS_DIR }}"
-          fi
+          helm plugin install https://github.com/hypnoglow/helm-s3.git --version ${{ env.HELM_S3_PLUGIN_VERSION }}
           # Add helm repo
           helm repo add demo "s3://${{ env.S3_BUCKET_NAME }}/${{ env.S3_BUCKET_CHARTS_DIR }}"
           # Create helm package
