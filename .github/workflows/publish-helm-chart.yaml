@@ -31,6 +31,8 @@ jobs:
           helm repo add demo "s3://${{ env.S3_BUCKET_NAME }}/${{ env.S3_BUCKET_CHARTS_DIR }}"
           # Create helm package
           helm package .
+          ls -al
+          pwd
           # Push package to the repo
           helm s3 push --relative ./s3-bucket-reader-${CHART_VERSION}.tgz demo
           # Update repository index
