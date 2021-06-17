@@ -1,0 +1,43 @@
+name: Publish helm chart
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'Chart.yaml'
+
+env:
+  S3_PLUGIN_VERSION: "v0.10.0"
+  S3_BUCKET_PUBLIC_URL: "https://svmt-helm-repo-s3.s3.eu-central-1.amazonaws.com"
+  S3_BUCKET_CHARTS_DIR: charts
+  S3_BUCKET_NAME: svmt-helm-repo-s3
+
+jobs:
+  push_to_helm_repo:
+    name: Publish helm chart to S3
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Prep helm chart
+        env:
+          AWS_REGION: eu-central-1
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        run: |
+          # Get chart version for Chart.yaml
+          CHART_VERSION=$(grep -E '^version:' Chart.yaml | awk '{print $2}')
+          # Install helm S3 plugin
+          helm plugin install https://github.com/hypnoglow/helm-s3.git --version ${{ env.S3_PLUGIN_VERSION }}
+          # Check if repo has been initialized. index.yaml is accessesible then
+          if ! curl -Is "${{ env.S3_BUCKET_PUBLIC_URL }}/${{ env.S3_BUCKET_CHARTS_DIR }}/index.yaml" | head -n1 | grep 200 &>/dev/null; then
+            # Initalize empty repository
+            helm s3 init "s3://${{ env.S3_BUCKET_NAME }}/${{ env.S3_BUCKET_CHARTS_DIR }}"
+          fi
+          # Add helm repo
+          helm repo add demo "s3://${{ env.S3_BUCKET_NAME }}/${{ env.S3_BUCKET_CHARTS_DIR }}"
+          # Create helm package
+          helm package .
+          # Push package to the repo
+          helm s3 push --relative ./aws-bucket-reader-${CHART_VERSION}.tgz demo
+          # Update repository index
+          helm s3 reindex demo
