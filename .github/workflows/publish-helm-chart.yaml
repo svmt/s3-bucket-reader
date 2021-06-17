@@ -32,6 +32,6 @@ jobs:
           # Create helm package
           helm package .
           # Push package to the repo
-          helm s3 push --relative ./aws-bucket-reader-${CHART_VERSION}.tgz demo
+          helm s3 push --relative ./s3-bucket-reader-${CHART_VERSION}.tgz demo
           # Update repository index
           helm s3 reindex demo
