@@ -1,4 +1,5 @@
 helm:
+  version: v1.2.3
   parameters:
   - name: image.tag
     value: 757ad6c802018a50be2dabafd7948d601ef473e0
