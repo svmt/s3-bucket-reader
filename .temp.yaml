@@ -1,7 +1,7 @@
 helm:
   parameters:
   - name: image.name
-    value: vcvxcxvxc
+    value: abc123
     forcestring: true
   - name: image.tag
     value: 757ad6c802018a50be2dabafd7948d601ef473e0
